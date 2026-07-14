@@ -1,0 +1,3 @@
+[submodule "slidr"]
+	path = slidr
+	url = git@github.com:slidr-cli/slidr

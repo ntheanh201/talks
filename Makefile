@@ -1,4 +1,4 @@
-SLIDR := ../slidr
+SLIDR := ./slidr
 PDM := cd $(SLIDR) && pdm run
 
 all: snow_corp_cncf
