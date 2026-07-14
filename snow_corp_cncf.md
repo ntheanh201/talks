@@ -155,7 +155,7 @@ Integrates with KEDA (autoscaling), Helm (deployment), Prometheus (monitoring)  
 
 # PART 2  -  Problem
 
-@subtitle SNOW Corp. Challenge Statement
+@subtitle The Challenge
 
 ---
 
@@ -241,7 +241,7 @@ Kubernetes' strict GPU isolation blocked the sequential "Train-to-Inference" pip
 
 # PART 3  -  Methodology
 
-@subtitle How SNOW Corp. Approached the Fix
+@subtitle How We Fixed It
 
 ---
 
@@ -305,7 +305,7 @@ Traditional metrics (CPU/RAM/DCGM) fail to reflect GPU service saturation. Heter
 
 # PART 4  -  Results
 
-@subtitle What SNOW Corp. Achieved
+@subtitle What We Achieved
 
 ---
 
