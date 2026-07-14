@@ -8,7 +8,7 @@ footer: Shared GPU Scheduling & Proactive Autoscaling - KubeCon CloudNativeCon J
 paginate: true
 ---
 
-@kicker CNCF Project  -  HAMi
+@kicker HAMi - A CNCF Incubation Project
 
 # Shared GPU Scheduling & Proactive Autoscaling
 
