@@ -21,7 +21,8 @@ build decks from this directory.
 
 ## Decks
 
-- `snow_corp_cncf.md` - Shared GPU Scheduling & Proactive Autoscaling (KubeCon Japan 2026)
+- `snow_corp_cncf.md` - Shared GPU Scheduling (KubeCon Japan 2026)
+- `hami_intro.md` - HAMi Introduction and Features - Shared GPU Scheduling & Proactive Autoscaling (KubeCon Japan 2026)
 
 ## Assets
 

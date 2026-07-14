@@ -384,7 +384,7 @@ Custom KEDA metrics beat reactive scaling for GPU workloads with warm-up latency
 
 @kicker Questions
 
-# {icon:message-circle cls=accent-primary} Thank You
+# Thank You
 
 @speaker name="Jeonghyun Kim" role="AI Engineer, SNOW Corp."
 @speaker name="Reza Jelveh" role="Solution Architect, Dynamia AI  -  Makers of HAMi" github=github.com/rezajelveh twitter=@rezajelveh
