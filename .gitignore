@@ -3,4 +3,4 @@ dist/
 __pycache__/
 .pdm-python
 .pdm-build/
-.bkp
+*.bkp
