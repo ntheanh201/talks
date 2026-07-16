@@ -6,10 +6,12 @@ all: $(HTMLS)
 
 dist/%.html: %.md
 	@mkdir -p dist
-	cd $(SLIDR) && pdm run slidr $(CURDIR)/$<
+	@CSS=$$(grep -q '^theme:' $< && echo "" || echo "--css ../themes/dynamia.css"); \
+	cd $(SLIDR) && pdm run slidr $$CSS $(CURDIR)/$<
 
 watch-%: %.md
-	cd $(SLIDR) && pdm run slidr -w $(CURDIR)/$<
+	@CSS=$$(grep -q '^theme:' $< && echo "" || echo "--css ../themes/dynamia.css"); \
+	cd $(SLIDR) && pdm run slidr -w $$CSS $(CURDIR)/$<
 
 clean:
 	rm -rf dist/

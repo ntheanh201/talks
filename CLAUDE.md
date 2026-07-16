@@ -1,0 +1,1 @@
+slidr/CLAUDE.md
