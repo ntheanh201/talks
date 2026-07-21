@@ -20,7 +20,7 @@ paginate: true
 
 Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low utilization in multi-tenant AI Notebooks. DRA and HAMi's vGPU virtualization solve this, but only if implemented correctly.
 
-- GPUs are **allocated whole** -- a 1GB inference task blocks an entire 80GB device
+- GPUs are **allocated whole**: a 1GB inference task blocks an entire 80GB device
 - **Over-provisioning** is the default: request peak, burn budget, idle silicon
 - **DRA** (Dynamic Resource Allocation) enables structured GPU requests but doesn't solve sharing
 - **HAMi** provides the fractional GPU layer DRA needs for fine-grained allocation
@@ -110,7 +110,7 @@ HAMi-Core uses **symbolic hijacking** inside containers:
 
 ## GPU Utilization Impact
 
-HAMi enables elastic GPU memory scaling -- idle tasks swap to host RAM, freeing device memory for active workloads:
+HAMi enables elastic GPU memory scaling: idle tasks swap to host RAM, freeing device memory for active workloads:
 
 ```seaborn
 import matplotlib.pyplot as plt
@@ -163,7 +163,7 @@ ax.text(15, -0.42, "15 GB\nburst", ha="center", va="top", fontsize=7.5, color=di
 
 ## Priority Preemption
 
-High-priority tasks preempt low-priority ones at CUDA kernel boundaries -- no wasted compute, clean context switch:
+High-priority tasks preempt low-priority ones at CUDA kernel boundaries: no wasted compute, clean context switch:
 
 ```seaborn
 import matplotlib.pyplot as plt
@@ -241,7 +241,9 @@ ax.text(50, -0.35, "CUDA-KERNEL BOUNDARY", ha="center", va="top", fontsize=7, co
 23GB Device + 46GB virtual memory hosts **3** 13B inference models
 :::
 
+::: notes{ tag="green" }
 GPU memory automatically swapped to host RAM for idle tasks. Typical scenario: model loading and inference serving.
+:::
 
 ---
 
@@ -331,7 +333,7 @@ Schedule tasks to specific GPU models or avoid certain types entirely.
 
 Multi-tenant data science platform serving hundreds of users:
 
-- **Before HAMi:** 1 GPU per notebook -- 30% average utilization, long queue times
+- **Before HAMi:** 1 GPU per notebook: 30% average utilization, long queue times
 - **With HAMi:** fractional vGPUs, multiple notebooks per physical GPU
 - **Workload mix:** Jupyter notebooks, model training, batch inference, RAG pipelines
 - **Scale:** telco-grade infrastructure, 24/7 SLA requirements
@@ -351,10 +353,10 @@ Multi-tenant data science platform serving hundreds of users:
 
 Moving from test to production at scale:
 
-- **Cold start latency:** container images + CUDA context init -- mitigated via pre-warmed node pools
-- **Memory fragmentation:** small vGPUs leave unusable gaps -- binpack scheduling active by default
-- **Noisy neighbor:** compute-bound tasks starve latency-sensitive inference -- priority + preemption
-- **Driver compatibility:** NVIDIA driver minimum 440, CUDA >= 10.2 -- enforced at admission
+- **Cold start latency:** container images + CUDA context init: mitigated via pre-warmed node pools
+- **Memory fragmentation:** small vGPUs leave unusable gaps: binpack scheduling active by default
+- **Noisy neighbor:** compute-bound tasks starve latency-sensitive inference: priority + preemption
+- **Driver compatibility:** NVIDIA driver minimum 440, CUDA >= 10.2: enforced at admission
 - **Monitoring gaps:** GPU telemetry at vGPU granularity required custom Prometheus exporters
 
 ---
@@ -421,8 +423,8 @@ Multiple small models (embedding, reranker, generator) share GPUs. 4 threads →
 
 ## Benefit to the Ecosystem
 
-- **CNCF Incubation project** -- vendor-neutral GPU sharing for any Kubernetes environment
-- **Hardware-agnostic:** NVIDIA, Ascend, Cambricon, Hygon, Iluvatar -- one API, any accelerator
+- **CNCF Incubation project**: vendor-neutral GPU sharing for any Kubernetes environment
+- **Hardware-agnostic:** NVIDIA, Ascend, Cambricon, Hygon, Iluvatar: one API, any accelerator
 - **Community-driven:** 80+ contributors, open governance, public roadmap
 - **Viettel as reference architecture:** production blueprint other telcos and enterprises can adopt
 - **Reduces e-waste:** better GPU utilization means fewer GPUs purchased, lower datacenter power draw
