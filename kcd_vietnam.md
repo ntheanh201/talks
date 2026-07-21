@@ -6,7 +6,7 @@ paginate: true
 ---
 
 @variant dark
-@kicker CNCF Sandbox Project
+@kicker A CNCF Incubation Project
 
 # HAMi
 
@@ -105,71 +105,47 @@ HAMi-Core uses **symbolic hijacking** inside containers:
 
 ## GPU Utilization Impact
 
-By enabling GPU sharing, tasks that once idled at 30% now combine with other workloads:
-
-```dot
-digraph G {
-  rankdir=LR
-  bgcolor=transparent
-  node [shape=plaintext margin=0 width=0 height=0]
-  edge [style=invis]
-
-  subgraph {
-    color=none
-    gauge [
-      label=<
-        <table border="0" cellborder="0" cellspacing="0" cellpadding="0">
-          <tr>
-            <td width="210" align="right"><font color="#166534" point-size="12"><b>▼</b></font></td>
-            <td width="2" bgcolor="#1e293b"></td>
-            <td width="88" align="left"><font color="#991b1b"> </font></td>
-          </tr>
-          <tr>
-            <td width="210" height="40" bgcolor="#22c55e" fixedsize="true"></td>
-            <td width="2" height="40" bgcolor="#1e293b" fixedsize="true"></td>
-            <td width="88" height="40" bgcolor="#ef4444" fixedsize="true"></td>
-          </tr>
-          <tr>
-            <td align="center"><font point-size="13" color="#166534"><b>70% Utilized</b></font></td>
-            <td></td>
-            <td align="center"><font point-size="13" color="#991b1b"><b>30% Idle</b></font></td>
-          </tr>
-        </table>
-      >
-    ]
-  }
-}
-```
-
-
----
-
-## GPU Utilization Impact (Seaborn)
+HAMi enables elastic GPU memory scaling -- idle tasks swap to host RAM, freeing device memory for active workloads:
 
 ```seaborn
-import matplotlib
-matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
-fig, ax = plt.subplots(figsize=(8, 1.2), dpi=100)
+fig, ax = plt.subplots(figsize=(8, 2.8))
+
+fg = plt.rcParams["text.color"]
+dimmed = plt.rcParams["xtick.color"]
+cmap = plt.get_cmap("Paired")
+danger = cmap(4.5 / 12)
+danger_bright = cmap(5 / 12)
+elastic = cmap(2.5 / 12)
+base = cmap(0.5 / 12)
+ax.set_facecolor("none")
 fig.patch.set_alpha(0)
 
-green = "#22c55e"
-red = "#ef4444"
-dark = "#1e293b"
+ax.barh(1, 8, color=base, height=0.65)
+ax.barh(1, 3, left=8, color=danger, height=0.65)
+ax.plot([10, 10], [0.62, 1.38], color=danger, linewidth=2.5, solid_capstyle="butt")
 
-ax.barh(0, 70, color=green, height=0.6)
-ax.barh(0, 30, left=70, color=red, height=0.6)
+ax.barh(0, 8, color=base, height=0.65)
+ax.barh(0, 7, left=8, color=elastic, height=0.65)
+ax.plot([10, 10], [-0.38, 0.38], color=fg, linewidth=1.5, linestyle="--")
+ax.plot([15, 15], [-0.38, 0.38], color=fg, linewidth=1.5, linestyle="--")
 
-ax.axvline(x=70, color=dark, linewidth=2)
-ax.annotate("▼", xy=(70, 0.42), fontsize=14, color=dark, ha="center", va="bottom")
+ax.set_xlim(0, 15.2)
+ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
+ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
 
-ax.text(35, -0.02, "70% Utilized", ha="center", fontsize=12, color="#166534", fontweight="bold")
-ax.text(85, -0.02, "30% Idle", ha="center", fontsize=12, color="#991b1b", fontweight="bold")
+ax.text(-0.3, 1, "Without HAMi", ha="right", va="center", fontsize=10, color=fg, fontweight="bold")
+ax.text(-0.3, 0, "With HAMi:\nElastic Scaling", ha="right", va="center", fontsize=10, color=fg, fontweight="bold")
 
-ax.set_xlim(0, 100)
-ax.set_ylim(-0.6, 0.6)
-ax.axis("off")
+ax.text(4, 1, "Normal base load", ha="center", va="center", fontsize=9, color=fg, fontweight="bold")
+ax.text(9.5, 1, "Traffic spike", ha="center", va="center", fontsize=7.5, color=dimmed, fontweight="bold")
+ax.text(10, 1.42, "10 GB limit", ha="center", va="bottom", fontsize=8, color=danger_bright, fontweight="bold")
+
+ax.text(4, 0, "Normal base load", ha="center", va="center", fontsize=9, color=fg, fontweight="bold")
+ax.text(11.5, 0, "Traffic spike", ha="center", va="center", fontsize=7.5, color=dimmed, fontweight="bold")
+ax.text(10, 0.38, "10 GB\nsoft limit", ha="center", va="bottom", fontsize=7.5, color=dimmed)
+ax.text(15, 0.38, "15 GB\nburst", ha="center", va="bottom", fontsize=7.5, color=dimmed)
 ```
 
 
