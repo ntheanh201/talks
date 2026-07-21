@@ -16,6 +16,12 @@ paginate: true
 
 ---
 
+# Part 1: The Problem
+
+@subtitle GPU underutilization, atomic allocation, multi-tenant contention
+
+---
+
 ## The Problem
 
 Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low utilization in multi-tenant AI Notebooks. DRA and HAMi's vGPU virtualization solve this, but only if implemented correctly.
@@ -27,9 +33,9 @@ Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low ut
 
 ---
 
-## Part 1: Mechanics of GPU Sharing
+# Part 2: The Solution
 
-@subtitle How DRA alters resource requests and HAMi implements fractional GPU allocation
+@subtitle How DRA + HAMi implement fractional GPU allocation and scheduling
 
 ---
 
@@ -323,9 +329,9 @@ Schedule tasks to specific GPU models or avoid certain types entirely.
 
 ---
 
-## Part 2: Production at Viettel Cloud
+# Part 3: Viettel Cloud
 
-@subtitle Deployment architecture, bottlenecks, and operational realities of fractional GPUs at telco scale
+@subtitle Production deployment of fractional GPUs for AI Notebooks at telco scale
 
 ---
 
