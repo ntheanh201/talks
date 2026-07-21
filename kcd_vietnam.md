@@ -109,6 +109,7 @@ HAMi enables elastic GPU memory scaling -- idle tasks swap to host RAM, freeing 
 
 ```seaborn
 import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch
 
 fig, ax = plt.subplots(figsize=(8, 2.8))
 
@@ -122,10 +123,15 @@ base = cmap(0.5 / 12)
 ax.set_facecolor("none")
 fig.patch.set_alpha(0)
 
+r = 0.14
+bs = f"round,pad={r}"
+
+# Row 1: base=8, spike=3
 ax.barh(1, 8, color=base, height=0.65)
 ax.barh(1, 3, left=8, color=danger, height=0.65)
 ax.plot([10, 10], [0.62, 1.38], color=danger, linewidth=2.5, solid_capstyle="butt")
 
+# Row 2: base=8, spike=7
 ax.barh(0, 8, color=base, height=0.65)
 ax.barh(0, 7, left=8, color=elastic, height=0.65)
 ax.plot([10, 10], [-0.38, 0.38], color=fg, linewidth=1.5, linestyle="--")
@@ -144,8 +150,8 @@ ax.text(10, 1.42, "10 GB limit", ha="center", va="bottom", fontsize=8, color=dan
 
 ax.text(4, 0, "Normal base load", ha="center", va="center", fontsize=9, color=fg, fontweight="bold")
 ax.text(11.5, 0, "Traffic spike", ha="center", va="center", fontsize=7.5, color=dimmed, fontweight="bold")
-ax.text(10, 0.38, "10 GB\nsoft limit", ha="center", va="bottom", fontsize=7.5, color=dimmed)
-ax.text(15, 0.38, "15 GB\nburst", ha="center", va="bottom", fontsize=7.5, color=dimmed)
+ax.text(10, -0.42, "10 GB\nsoft limit", ha="center", va="top", fontsize=7.5, color=dimmed)
+ax.text(15, -0.42, "15 GB\nburst", ha="center", va="top", fontsize=7.5, color=dimmed)
 ```
 
 
