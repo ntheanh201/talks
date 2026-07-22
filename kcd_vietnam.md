@@ -18,6 +18,8 @@ paginate: true
 
 ## What You'll Learn
 
+@subtitle Problem, solution, production case study
+
 - **GPU Sharing Mechanics:** How DRA and HAMi interact with the Kubernetes scheduler, and where the abstraction breaks down
 - **Production Blueprint:** Viettel Cloud's deployment of AI Notebooks with fractional GPUs, including isolation techniques and real utilization numbers
 - **Problem → Solution → Implementation:** The full pipeline from identifying GPU underutilization to deploying a production vGPU platform at telco scale
@@ -32,6 +34,8 @@ paginate: true
 
 ## The Problem
 
+@subtitle Atomic GPU allocation wastes silicon
+
 Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low utilization in multi-tenant AI Notebooks. DRA and HAMi's vGPU virtualization solve this, but only if implemented correctly.
 
 - GPUs are **allocated whole**: a 1GB inference task blocks an entire 80GB device
@@ -43,11 +47,15 @@ Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low ut
 
 ## What is HAMi
 
+@subtitle Static allocation, one GPU per task
+
 ![Before HAMi](assets/hami_intro/before-hami.png)
 
 ---
 
 ## What is HAMi
+
+@subtitle Fractional vGPUs, multiple tasks per device
 
 ![After HAMi](assets/hami_intro/after-hami.png)
 
@@ -60,6 +68,8 @@ Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low ut
 ---
 
 ## HAMi Capabilities
+
+@subtitle Six things HAMi brings to GPU scheduling
 
 ::: grid {cols=2}
 ::: card
@@ -123,6 +133,8 @@ Provide consistent metrics and visibility across device vendors.
 
 ## GPU Management Pain Points
 
+@subtitle What breaks when GPUs are atomic
+
 - {icon:server cls=accent-secondary} No resource pool, no overall scheduling, no management plane
 - {icon:layers cls=accent-secondary} GPUs scattered, difficult to manage centrally
 - {icon:lock cls=accent-secondary} No GPU sharing - 1 GPU per task minimum
@@ -132,6 +144,8 @@ Provide consistent metrics and visibility across device vendors.
 ---
 
 ## What is HAMi
+
+@subtitle One middleware, any accelerator
 
 Heterogeneous AI Computing Virtualization Middleware
 
@@ -158,6 +172,8 @@ HAMi provides device sharing by dynamic device slicing. A task allocates a porti
 
 ## How GPU Sharing Works
 
+@subtitle Symbolic hijacking inside containers
+
 HAMi-Core uses **symbolic hijacking** inside containers:
 
 | Requirement | Specification |
@@ -172,6 +188,8 @@ HAMi-Core uses **symbolic hijacking** inside containers:
 ---
 
 ## GPU Utilization Impact
+
+@subtitle Idle tasks swap to host RAM
 
 HAMi enables elastic GPU memory scaling: idle tasks swap to host RAM, freeing device memory for active workloads:
 
@@ -282,6 +300,8 @@ ax.text(50, -0.35, "CUDA-KERNEL BOUNDARY", ha="center", va="top", fontsize=7, co
 ---
 
 ## Priority Preemption
+
+@subtitle High priority pauses low priority at kernel boundaries
 @hidden
 
 High-priority tasks preempt low-priority ones at CUDA kernel boundaries: no wasted compute, clean context switch:
@@ -345,6 +365,8 @@ ax.text(50, -0.35, "CUDA-KERNEL BOUNDARY", ha="center", va="top", fontsize=7, co
 
 ## Memory Oversubscription
 
+@subtitle 23 GB device + 46 GB virtual = 3x models
+
 @layout compare
 
 ::: card {tag=compare}
@@ -371,6 +393,8 @@ GPU memory automatically swapped to host RAM for idle tasks. Typical scenario: m
 ---
 
 ## GPU Sharing Parameters
+
+@subtitle Fine-grained control per task
 @hidden
 
 - : memory size per GPU. Defaults to all available if not set
@@ -409,6 +433,8 @@ GPU memory automatically swapped to host RAM for idle tasks. Typical scenario: m
 
 ## GPU Sharing Methods Compared
 
+@subtitle vGPU vs CUDA streams vs MPS vs MIG
+
 | Method | Multi-vendor | Isolation | Fragmentation | Overhead |
 |--------|:---:|:---:|:---:|:---:|
 | HAMi vGPU | {icon:check cls=accent-primary} | Strong | Low | Low |
@@ -421,6 +447,8 @@ GPU memory automatically swapped to host RAM for idle tasks. Typical scenario: m
 ---
 
 ## HAMi vs Other Projects
+
+@subtitle Feature comparison across solutions
 
 | Feature | HAMi | NVIDIA device-plugin | NVIDIA DRA driver |
 |---------|:---:|:---:|:---:|
@@ -442,6 +470,8 @@ GPU memory automatically swapped to host RAM for idle tasks. Typical scenario: m
 
 ## Viettel Cloud: AI Notebooks
 
+@subtitle Multi-tenant data science at telco scale
+
 Multi-tenant data science platform serving hundreds of users:
 
 - **Before HAMi:** 1 GPU per notebook: 30% average utilization, long queue times
@@ -453,6 +483,8 @@ Multi-tenant data science platform serving hundreds of users:
 
 ## Deployment Architecture
 
+@subtitle Helm, DRA, Prometheus, node problem detector
+
 - HAMi scheduler + device plugin deployed via Helm on Viettel Kubernetes clusters
 - DRA resource claims structured per-namespace, per-user quota enforced at scheduler level
 - Prometheus + Grafana dashboards: per-tenant GPU utilization, memory pressure, preemption events
@@ -461,6 +493,8 @@ Multi-tenant data science platform serving hundreds of users:
 ---
 
 ## Production Bottlenecks
+
+@subtitle What breaks between test and prod
 
 Moving from test to production at scale:
 
@@ -474,6 +508,8 @@ Moving from test to production at scale:
 
 ## Observability
 
+@subtitle Grafana + Prometheus, per-tenant visibility
+
 HAMi provides built-in monitoring dashboards (Grafana + Prometheus):
 
 - **K8s scheduling dimension:** vGPU task bindings, task-to-GPU relationships
@@ -483,6 +519,8 @@ HAMi provides built-in monitoring dashboards (Grafana + Prometheus):
 ---
 
 ## Applicable Scenarios
+
+@subtitle Online inference, A/B testing, mixed workloads
 
 ::: grid {cols=2}
 ::: card {tag=green}
@@ -514,7 +552,9 @@ Multiple small models (embedding, reranker, generator) share GPUs. 4 threads →
 
 
 @layout ecosystem
-## Ecosystem
+## Where We Are Today
+
+@subtitle Community, devices, adopters
 
 ### Open Source, CNCF Backed, Production Ready
 ::: grid {cols=5}
@@ -569,6 +609,8 @@ Contributor Countries
 
 ## Ecosystem Integrations
 
+@subtitle Volcano, Koordinator, KEDA, Helm
+
 | Project | Integration |
 |---------|-------------|
 | Volcano | Batch scheduling for HPC/AI workloads (CNCF) |
@@ -580,6 +622,8 @@ Contributor Countries
 ---
 
 ## HAMi Community
+
+@subtitle 80+ contributors, 100+ enterprise adopters
 
 | Metric | Value |
 |--------|-------|
@@ -593,6 +637,8 @@ The only open-source project focused on AI Infrastructure and heterogeneous AI m
 ---
 
 ## About HAMi
+
+@subtitle CNCF Incubation, open source
 
 - {icon:git-fork cls=accent-primary} github.com/Project-HAMi/HAMi
 - {icon:globe cls=accent-primary} project-hami.io

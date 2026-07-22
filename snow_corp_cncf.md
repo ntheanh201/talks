@@ -37,6 +37,8 @@ SNOW Corp., subsidiary of NAVER, manages 1000+ A100 GPUs serving 200M users acro
 
 ## Talk Overview
 
+@subtitle Shared GPU Scheduling & Proactive Autoscaling
+
 **What you'll learn:**
 
 - {icon:cpu cls=accent-primary} Integrating HAMi for vGPU virtualization
@@ -56,17 +58,23 @@ SNOW Corp., subsidiary of NAVER, manages 1000+ A100 GPUs serving 200M users acro
 
 ## What is HAMi
 
+@subtitle Static allocation, one GPU per task
+
 ![Before HAMi](assets/hami_intro/before-hami.png)
 
 ---
 
 ## What is HAMi
 
+@subtitle Fractional vGPUs, multiple tasks per device
+
 ![After HAMi](assets/hami_intro/after-hami.png)
 
 ---
 
 ## Device Plugin vs DRA
+
+@subtitle Why DRA matters for GPU scheduling
 
 @layout compare
 
@@ -98,6 +106,8 @@ SNOW Corp., subsidiary of NAVER, manages 1000+ A100 GPUs serving 200M users acro
 ---
 
 ## HAMi Capabilities
+
+@subtitle Six things HAMi brings to GPU scheduling
 
 ::: grid {cols=2}
 ::: card
@@ -149,6 +159,8 @@ HAMi provides device sharing by dynamic device slicing. A task allocates a porti
 
 ## How GPU Sharing Works
 
+@subtitle Symbolic hijacking inside containers
+
 HAMi-Core uses **symbolic hijacking** inside containers:
 
 | Requirement | Specification |
@@ -164,6 +176,8 @@ HAMi-Core uses **symbolic hijacking** inside containers:
 
 ## HAMi vs Other Projects
 
+@subtitle Feature comparison across solutions
+
 | Feature | HAMi | NVIDIA device-plugin | NVIDIA DRA driver |
 |---------|:---:|:---:|:---:|
 | Multi-vendor GPUs | {icon:check cls=accent-primary} | {icon:x cls=accent-secondary} | {icon:x cls=accent-secondary} |
@@ -177,6 +191,8 @@ HAMi-Core uses **symbolic hijacking** inside containers:
 ---
 
 ## HAMi + DRA: The Full Picture
+
+@subtitle Where each approach fits
 
 | Capability | Device Plugin | DRA | HAMi | HAMi + DRA |
 |------------|:---:|:---:|:---:|:---:|
@@ -194,6 +210,8 @@ HAMi-Core uses **symbolic hijacking** inside containers:
 
 ## HAMi Architecture
 
+@subtitle Scheduler, device plugin, vGPU abstraction
+
 - {icon:git-branch cls=accent-primary} **HAMi scheduler** extends kube-scheduler
 - {icon:hard-drive cls=accent-secondary} **Device plugin** reports virtualized GPU capacity
 - {icon:layers cls=accent-contrast} **vGPU abstraction** maps physical → virtual devices
@@ -206,6 +224,8 @@ Integrates with KEDA (autoscaling), Helm (deployment), Prometheus (monitoring)  
 @layout image-right
 
 ## GPU Sharing Architecture
+
+@subtitle How components connect
 
 ![HAMi GPU Sharing](assets/dra/10000000000007D00000045C4E7A6399.png)
 
@@ -241,6 +261,8 @@ Integrates with KEDA (autoscaling), Helm (deployment), Prometheus (monitoring)  
 
 ## GPU Sharing Methods Compared
 
+@subtitle vGPU vs CUDA streams vs MPS vs MIG
+
 | Method | Multi-vendor | Isolation | Fragmentation | Overhead |
 |--------|:---:|:---:|:---:|:---:|
 | HAMi vGPU | {icon:check cls=accent-primary} | Strong | Low | Low |
@@ -260,6 +282,8 @@ Integrates with KEDA (autoscaling), Helm (deployment), Prometheus (monitoring)  
 
 ## The Problem
 
+@subtitle Atomic GPU allocation wastes silicon
+
 Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low utilization in multi-tenant AI Notebooks. DRA and HAMi's vGPU virtualization solve this, but only if implemented correctly.
 
 - GPUs are **allocated whole**: a 1GB inference task blocks an entire 80GB device
@@ -270,6 +294,8 @@ Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low ut
 ---
 
 ## Workload Challenges
+
+@subtitle System instability, inefficiency, operational overload
 
 ::: grid {cols=2}
 ::: card {tag=red}
@@ -296,6 +322,8 @@ No automatic recovery. Manual intervention drove up staff workload and operation
 
 ## The Legacy: Static Docker
 
+@subtitle Manual GPU binding, no centralized control
+
 ![SNOW Legacy Docker Architecture](assets/snow/snow-legacy-docker.png)
 
 - Manual GPU binding per host
@@ -309,6 +337,8 @@ No automatic recovery. Manual intervention drove up staff workload and operation
 @variant dark
 
 ## Infrastructure Evolution
+
+@subtitle From Docker silos to Kubernetes + HAMi
 
 ::: card {tag=compare}
 ### AS-IS: Legacy Docker
@@ -339,6 +369,8 @@ No automatic recovery. Manual intervention drove up staff workload and operation
 
 ## GPU Sharing: The Migration Hurdle
 
+@subtitle Train-to-Inference pipeline blocked by GPU isolation
+
 Kubernetes' strict GPU isolation blocked the sequential "Train-to-Inference" pipeline.
 
 ![Sequential Train-to-Inference Pipeline](assets/snow/sequential-train-to-inference.png)
@@ -358,6 +390,8 @@ Kubernetes' strict GPU isolation blocked the sequential "Train-to-Inference" pip
 @layout image-right
 
 ## Building a Cloud-Native Foundation
+
+@subtitle Multi-region on-premise HA with decoupled ETCD
 
 | Project | Role |
 |---------|------|
@@ -381,6 +415,8 @@ Multi-region on-premise HA clusters with decoupled ETCD topology for production 
 
 ## Helm-Based Service Deployment
 
+@subtitle Standardized deployment via GitOps
+
 ![Service Deployment Workflow](assets/snow/service-deployment-workflow.png)
 
 Standardized deployment via Helm Charts. Sync between charts and clusters performed by CI/CD pipeline (GitHub Actions).
@@ -390,6 +426,8 @@ Standardized deployment via Helm Charts. Sync between charts and clusters perfor
 @layout image-right
 
 ## Migration Solution: HAMi vGPU
+
+@subtitle Device sharing without code changes
 
 ![HAMi GPU Allocation Feature](assets/snow/hami-gpu-allocation-feature.png)
 
@@ -402,6 +440,8 @@ Result: flexible GPU scheduling comparable to Docker, with enhanced utilization 
 ---
 
 ## Proactive GPU Orchestration
+
+@subtitle Custom KEDA metrics for GPU saturation
 
 Traditional metrics (CPU/RAM/DCGM) fail to reflect GPU service saturation. Heterogeneous workloads mean utilization ≠ saturation.
 
@@ -421,6 +461,8 @@ Traditional metrics (CPU/RAM/DCGM) fail to reflect GPU service saturation. Heter
 
 ## Quantitative Results
 
+@subtitle 91 percent faster recovery, 55 percent less GPU waste
+
 | Metric | Improvement |
 |--------|-------------|
 | MTTR | -91% (~2hr → ~10min) |
@@ -437,6 +479,8 @@ Traditional metrics (CPU/RAM/DCGM) fail to reflect GPU service saturation. Heter
 
 ## Error Reduction: Before vs After
 
+@subtitle 85 percent drop in GPU surge errors
+
 ![KEDA Error Count GPU Surges](assets/snow/keda-error-count-gpu-surges.png)
 
 GPU surge-related user errors dropped 85% after KEDA-based GPU orchestration deployed (May 2025).
@@ -447,6 +491,8 @@ GPU surge-related user errors dropped 85% after KEDA-based GPU orchestration dep
 @layout image-left
 
 ## Hybrid Cloud Bursting: 700% Spike
+
+@subtitle Ghibli Filter traffic surge handled with zero downtime
 
 ![Real-world Validation](assets/snow/snow_kubecon.drawio_ghibli.png)
 
@@ -464,6 +510,8 @@ Achieved 7x peak consumption without service interruption.
 
 ## GPU Monitoring Dashboard
 
+@subtitle Full fleet visibility
+
 ![GPU Monitoring Dashboard](assets/snow/gpu-monitoring-dashboard.png)
 
 Full visibility into GPU utilization, scheduling, and autoscaling across the entire fleet.
@@ -471,6 +519,8 @@ Full visibility into GPU utilization, scheduling, and autoscaling across the ent
 ---
 
 ## Key Takeaways
+
+@subtitle Production blueprint, GPU sharing, proactive scaling
 
 ::: grid {cols=3}
 ::: card {tag=green}
@@ -493,7 +543,9 @@ Custom KEDA metrics beat reactive scaling for GPU workloads with warm-up latency
 ---
 
 @layout ecosystem
-## Ecosystem
+## Where We Are Today
+
+@subtitle Community, devices, adopters
 
 ### Open Source, CNCF Backed, Production Ready
 ::: grid {cols=5}
