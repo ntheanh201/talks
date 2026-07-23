@@ -3,6 +3,7 @@ theme: kcd_vietnam
 title: "From Project to Production: HAMi and Viettel Cloud"
 footer: HAMi - Heterogeneous AI Computing Virtualization Middleware
 paginate: true
+transition: fade
 ---
 
 @variant dark
@@ -54,6 +55,7 @@ Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low ut
 ---
 
 ## What is HAMi
+@transition none
 
 @subtitle Fractional vGPUs, multiple tasks per device
 
