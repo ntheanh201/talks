@@ -498,7 +498,6 @@ Cloud platform of Viettel Group, Vietnam's largest telco.
 
 - **AI Platform**: notebooks, training, inference
 - **AI Notebooks with fractional GPU**
-- Our **AI Platform** is **Kubernetes AI Conformance** certified (v1.35) - first & only in Vietnam
 - **H200** pool (141 GB), plus **L40, L40S, A30, A6000, ...**
 :::
 :::
@@ -585,7 +584,7 @@ ax.set_xticks([])
 ```
 
 - The time-series job leaves **140 GB and 80% of the GPU** doing nothing
-- Detection training took 39 GB - a bigger batch **hurts accuracy**, and the pipeline blocks first
+- Detection training took **39 GB** - it still left most of the card unused
 - **Many of our GPUs have no MIG:** L40, L40S, A6000, ...
 
 > Kubernetes gives you one choice: `nvidia.com/gpu: 1`. The whole card, or nothing.
@@ -646,9 +645,45 @@ One pod uses only **18% of the card**. Pack **10 replicas** on it and the GPU hi
 
 ## One Card, One Day
 
-@subtitle One slice guaranteed, the rest follows the load
+@subtitle One slice guaranteed, on purpose - and what it costs
 
-**Workload:** an AI Notebook training YOLO11 - ~17k images, batch 64 → **39 GB** used. We fence **~30% of the card** (with headroom) and cap it to **70% of the cores** to reserve the rest.
+**Workload:** an AI Notebook training YOLO11 - ~17k images, batch 64 → **39 GB** used. Batch is sized for **accuracy**, not to fill the card - so the spare **~100 GB is genuinely free**, not just idle. We fence **~30%** and cap the notebook to **70% of the cores**.
+
+```seaborn
+import matplotlib.pyplot as plt
+
+FG, DIM = "#3a2020", "#7a6a5a"
+RED, GREY = "#e61e24", "#eceae8"
+
+fig, ax = plt.subplots(figsize=(5.2, 2.85))
+fig.patch.set_alpha(0)
+ax.set_facecolor("none")
+ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
+ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+ax.set_xticks([])
+
+ax.text(-0.55, 104, "PRICE OF CAPPING", fontsize=11.5, color=DIM, family="monospace")
+ax.plot([-0.5, 1.55], [60, 60], color=DIM, linewidth=1.2, linestyle=(0, (4, 3)), zorder=3)
+ax.bar(0, 60, width=0.5, color=GREY, zorder=2)
+ax.bar(1, 80, width=0.5, color=RED, zorder=2)
+ax.text(0, 63, "1h00", ha="center", va="bottom", fontsize=15, color=FG, fontweight="bold")
+ax.text(1, 83, "1h20", ha="center", va="bottom", fontsize=15, color=FG, fontweight="bold")
+ax.text(1.34, 70, "+20 min", ha="left", va="center", fontsize=13, color=RED, fontweight="bold")
+ax.text(0, -8, "full", ha="center", va="top", fontsize=12, color=DIM)
+ax.text(1, -8, "70% cores", ha="center", va="top", fontsize=12, color=DIM)
+ax.set_xlim(-0.8, 2.5)
+ax.set_ylim(-20, 112)
+```
+
+- {icon:lock cls=accent-primary} **Memory is fenced.** The notebook sees only its own slice - it cannot OOM the neighbours
+- {icon:gauge cls=accent-primary} **Cores are capped** with `force` - the freed share is **reserved**, not "maybe"
+- {icon:refresh-cw cls=accent-contrast} **The price:** ~20 minutes, on purpose - *a small model; a big one costs much more*
+
+---
+
+## The Rest Follows The Load
+
+@subtitle One notebook fixed all day - inference flexes by the hour
 
 ```seaborn
 import matplotlib.pyplot as plt
@@ -656,75 +691,99 @@ import matplotlib.pyplot as plt
 FG, DIM = "#3a2020", "#7a6a5a"
 BLUE, BLUEL, RED, YELLOW, GREY = "#28a4db", "#8fcdec", "#e61e24", "#f4a93a", "#eceae8"
 
-fig, (axL, axR) = plt.subplots(1, 2, figsize=(10.5, 2.7),
-                               gridspec_kw={"width_ratios": [1.15, 3], "wspace": 0.36})
+fig, ax = plt.subplots(figsize=(11, 3.35))
 fig.patch.set_alpha(0)
-for ax in (axL, axR):
-    ax.set_facecolor("none")
-    ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
-    ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
-    ax.set_xticks([])
+ax.set_facecolor("none")
+ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
+ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+ax.set_xticks([])
 
-# ---- left: the price of capping (dashed 1h baseline, delta above it) ----
-axL.text(-0.62, 104, "PRICE OF CAPPING", fontsize=10, color=DIM, family="monospace")
-axL.plot([-0.5, 1.9], [60, 60], color=DIM, linewidth=1.1, linestyle=(0, (4, 3)), zorder=3)
-axL.bar(0, 60, width=0.46, color=GREY, zorder=2)
-axL.bar(1, 80, width=0.46, color=RED, zorder=2)
-axL.text(0, 63, "1h00", ha="center", va="bottom", fontsize=12, color=FG, fontweight="bold")
-axL.text(1, 83, "1h20", ha="center", va="bottom", fontsize=12, color=FG, fontweight="bold")
-axL.text(1.28, 70, "+20 min", ha="left", va="center", fontsize=10.5, color=RED, fontweight="bold")
-axL.text(0, -8, "full", ha="center", va="top", fontsize=10.5, color=DIM)
-axL.text(1, -8, "70% cores", ha="center", va="top", fontsize=10.5, color=DIM)
-axL.set_xlim(-0.75, 2.25)
-axL.set_ylim(-20, 112)
-
-# ---- right: one H200 across a day ----
-axR.text(-30, 2.78, "ONE H200 ACROSS ONE DAY", fontsize=10, color=DIM, family="monospace")
+ax.text(-26, 2.86, "ONE H200 ACROSS ONE DAY", fontsize=11.5, color=DIM, family="monospace")
 rows = [
-    (2, "Morning", [(30, BLUE, "Notebook ~30%"), (50, RED, "Time-series  x6"), (20, GREY, "")]),
-    (1, "Office hours", [(30, BLUE, "Notebook ~30%"), (8, RED, "x1"), (42, YELLOW, "LLM inference  x5"), (20, GREY, "")]),
-    (0, "Night", [(30, BLUE, "Notebook ~30%"), (42, BLUEL, "more training"), (8, RED, "x1"), (20, GREY, "")]),
+    (2, "Morning", [(30, BLUE, "Notebook ~30%"), (50, RED, "Time-series  ×6"), (20, GREY, "")]),
+    (1, "Office hours", [(30, BLUE, "Notebook ~30%"), (8, RED, "×1"), (42, YELLOW, "LLM inference  ×5"), (20, GREY, "")]),
+    (0, "Night", [(30, BLUE, "Notebook ~30%"), (42, BLUEL, "more training"), (8, RED, "×1"), (20, GREY, "")]),
 ]
 for y, label, segs in rows:
     left = 0
     for w, c, txt in segs:
-        axR.barh(y, w, left=left, color=c, height=0.58, edgecolor="white", linewidth=1.6)
+        ax.barh(y, w, left=left, color=c, height=0.62, edgecolor="white", linewidth=1.8)
         if txt:
-            axR.text(left + w / 2, y, txt, ha="center", va="center", fontsize=8,
-                     color="#161616" if c in (YELLOW, BLUEL) else "white", fontweight="bold")
+            ax.text(left + w / 2, y, txt, ha="center", va="center", fontsize=10.5,
+                    color="#161616" if c in (YELLOW, BLUEL) else "white", fontweight="bold")
         left += w
-    axR.text(-3, y, label, ha="right", va="center", fontsize=11.5, color=FG, fontweight="bold")
-axR.text(100, 2.62, "card full", ha="right", va="bottom", fontsize=8.5, color=DIM)
-axR.plot([100, 100], [-0.4, 2.5], color=DIM, linewidth=0.9, linestyle=(0, (2, 3)), zorder=1)
-axR.set_xlim(-30, 106)
-axR.set_ylim(-0.55, 3.05)
+    ax.text(-3, y, label, ha="right", va="center", fontsize=13, color=FG, fontweight="bold")
+ax.text(100, 2.7, "card full", ha="right", va="bottom", fontsize=10, color=DIM)
+ax.plot([100, 100], [-0.4, 2.58], color=DIM, linewidth=1.0, linestyle=(0, (2, 3)), zorder=1)
+ax.set_xlim(-26, 106)
+ax.set_ylim(-0.6, 3.2)
 ```
 
-- {icon:lock cls=accent-primary} **Memory is fenced.** The notebook sees only its own slice - it cannot OOM the neighbours
-- {icon:gauge cls=accent-primary} **Cores are capped** with `force` - 70% for the notebook, so the rest is **reserved**, not "maybe"
-- {icon:refresh-cw cls=accent-contrast} **The price:** one run takes **1h20 instead of 1h** - 20 minutes on purpose *(small model; a big one costs much more)*
+- {icon:lock cls=accent-primary} **The notebook never moves.** Its slice is fixed all day → training stays stable and guaranteed
+- {icon:refresh-cw cls=accent-contrast} **KEDA hands the freed space off through the day.** The morning **burst fades** → cores go to **LLM <20B** → one time-series instance stays for scattered load → at night, spare **auto-scales more notebooks** for extra overnight training. *Never idle.*
+
+---
+
+@hidden
+## Stable While Shared
+
+@subtitle Does sharing make training jittery? We measured it
+
+The card is now *truly* shared - the notebook trains while **bursty inference** flexes beside it. Does that shake the training? We measured epoch-time **CV** - standard deviation ÷ mean, lower is steadier.
+
+```seaborn
+import matplotlib.pyplot as plt
+
+FG, DIM = "#3a2020", "#7a6a5a"
+RED, GREEN = "#e61e24", "#39ae4a"
+
+fig, ax = plt.subplots(figsize=(5.6, 2.95))
+fig.patch.set_alpha(0)
+ax.set_facecolor("none")
+ax.spines[["top", "right", "left", "bottom"]].set_visible(False)
+ax.tick_params(left=False, bottom=False, labelleft=False, labelbottom=False)
+ax.set_xticks([])
+
+ax.text(-0.55, 23.2, "EPOCH-TIME JITTER  (CV, LOWER = STEADIER)", fontsize=10, color=DIM, family="monospace")
+bars = [(0, 1, GREEN, "alone"), (1, 19, RED, "shared, no cap"), (2, 9, GREEN, "shared, capped")]
+for x, v, c, lab in bars:
+    ax.bar(x, v, width=0.56, color=c, zorder=2)
+    ax.text(x, v + 0.8, f"{v}%", ha="center", va="bottom", fontsize=15, color=FG, fontweight="bold")
+    ax.text(x, -1.4, lab, ha="center", va="top", fontsize=11.5, color=DIM)
+ax.annotate("", xy=(1.82, 10.2), xytext=(1.18, 17.6),
+            arrowprops=dict(arrowstyle="->", color=FG, linewidth=1.7, connectionstyle="arc3,rad=-0.32"))
+ax.text(2.02, 15.0, "cap halves it", ha="center", va="center", fontsize=10.5, color=FG, fontweight="bold")
+ax.set_xlim(-0.65, 2.7)
+ax.set_ylim(-4, 24.5)
+```
+
+- {icon:check cls=accent-primary} **Alone, nothing contends:** CV ~**1%** - rock-steady epochs
+- {icon:triangle-alert cls=accent-secondary} **Shared with bursty inference, no cap:** CV jumps to **19%** - jittery, hard to predict
+- {icon:gauge cls=accent-primary} **Cap the neighbours (`force`):** CV back to **9%** - steady again, same shared card
+
+> **Honest caveat:** cap isolates *stability*, not *throughput* - for hard throughput isolation, use **MIG**.
 
 ---
 
 ## But It Does Not Always Help
 
-@subtitle The most important slide for your own planning
+@subtitle HAMi fills the *empty* part of a card - a full one has nothing to give
 
 ::: grid {cols=2}
 ::: card {tag=green}
-### {icon:check cls=accent-primary} It helps when...
+### {icon:check cls=accent-primary} It helps when the card is empty
 
-**small** or **bursty** - cannot fill the GPU alone.
+**Inference:** one pod = **~18% SM**, card **82% idle**.
 
-- ~10 pods on 1 GPU: **3.4x more work**
+- Pack ~10 → SM hits **100%** → **3.4x more work**
 :::
 ::: card {tag=red}
-### {icon:x cls=accent-secondary} It does not help when...
+### {icon:x cls=accent-secondary} Not when it is already full
 
-the job **already fills** the GPU by itself.
+**Training / big LLM:** one instance **already saturates** the card.
 
-- One big LLM: **11.6k** tok/s. Four small: **7.3k**
-- Training packed 4 ways: **0.77x** - slower
+- Big LLM: one **11.6k** tok/s **>** four small **7.3k**
+- Same training job **× 4**: **0.77x** - packing *loses*
 :::
 :::
 
@@ -735,41 +794,6 @@ the job **already fills** the GPU by itself.
 | `gpumem` - memory | **A real limit.** Your neighbour is safe |
 | `gpucores`, default | **Only a hint.** 10% and 90% ran the same speed |
 | `gpucores`, **`force`** | **A real cap.** 70% cores → run takes 1h20, not 1h |
-
----
-
-## Where To Use It, Where Not To
-
-@subtitle Right tool, right job
-
-::: grid {cols=3}
-::: card {tag=green}
-### {icon:check cls=accent-primary} Good fit
-
-- Notebooks for researchers
-- Small inference services
-- Dev, test, CI
-- Bursty traffic + KEDA
-- Tensor parallel, NCCL 2.19+
-:::
-::: card {tag=yellow}
-### {icon:triangle-alert cls=accent-contrast} Be careful
-
-- NCCL needs bigger `/dev/shm`
-- Kill a job → next one waits
-- Pin process to the GPU's CPU
-:::
-::: card {tag=red}
-### {icon:x cls=accent-secondary} Do not
-
-- Multi-machine training
-- **Hardware** isolation - use MIG
-- Runtimes like MATLAB
-- One big model that fills it
-:::
-:::
-
-> HAMi packs **many small jobs**. On L40 and L40S there is no MIG at all.
 
 ---
 
@@ -794,10 +818,46 @@ the job **already fills** the GPU by itself.
 
 HAMi sits in front of every CUDA call. **Go around CUDA, and HAMi cannot see you.**
 
-- {icon:check cls=accent-primary} **Multi-GPU works.** We tested P2P, all-reduce, tensor parallel + CUDA graphs on NCCL 2.28
-- {icon:triangle-alert cls=accent-secondary} **We tried to break it.** Even old NCCL forced onto the legacy path still passed
-- {icon:x cls=accent-secondary} **Some runtimes hang.** MATLAB freezes before it reaches CUDA
-- {icon:layers cls=accent-secondary} **CDI mode breaks HAMi.** Use `nvidia-legacy` - and the new **DRA** driver is built on CDI
+```seaborn
+import matplotlib.pyplot as plt
+from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+
+FG, DIM = "#3a2020", "#7a6a5a"
+GREEN, RED = "#39ae4a", "#e61e24"
+
+fig, ax = plt.subplots(figsize=(10.5, 2.6))
+fig.patch.set_alpha(0)
+ax.set_facecolor("none")
+ax.set_xlim(0, 100)
+ax.set_ylim(-1, 44)
+ax.axis("off")
+
+def box(x, w, text, fc, ec, tc, fs=12.5):
+    y, h = 25, 12
+    ax.add_patch(FancyBboxPatch((x, y), w, h, boxstyle="round,pad=0.4,rounding_size=2",
+                                linewidth=1.8, edgecolor=ec, facecolor=fc, zorder=3))
+    ax.text(x + w / 2, y + h / 2, text, ha="center", va="center", fontsize=fs,
+            color=tc, fontweight="bold", zorder=4, linespacing=1.3)
+
+box(3, 22, "App / framework", "#ffffff", DIM, FG)
+box(40, 26, "HAMi libvgpu\n(intercept)", "#e6f5e9", GREEN, "#1f5b2b")
+box(82, 15, "GPU", "#ffffff", DIM, FG)
+
+ax.annotate("", xy=(39.5, 31), xytext=(25.5, 31), arrowprops=dict(arrowstyle="-|>", color=GREEN, lw=2.3, mutation_scale=16))
+ax.annotate("", xy=(81.5, 31), xytext=(66.5, 31), arrowprops=dict(arrowstyle="-|>", color=GREEN, lw=2.3, mutation_scale=16))
+ax.text(32.5, 34.2, "CUDA", ha="center", fontsize=10, color=DIM, family="monospace")
+ax.text(50, 41.5, "through CUDA  →  HAMi caps & fences it", ha="center", fontsize=11.5, color="#1f5b2b", fontweight="bold")
+
+byp = FancyArrowPatch((13, 24.5), (89, 24.5), connectionstyle="arc3,rad=0.15",
+                      arrowstyle="-|>", mutation_scale=18, lw=2.1, color=RED, linestyle=(0, (5, 3)), zorder=2)
+ax.add_patch(byp)
+ax.text(50, 7.5, "around CUDA  →  HAMi is blind", ha="center", fontsize=11.5, color=RED, fontweight="bold")
+ax.text(50, 2.5, "e.g. MATLAB - freezes before it ever reaches CUDA", ha="center", fontsize=9.5, color=DIM)
+```
+
+- {icon:package cls=accent-secondary} **Alpine / musl images crash.** libvgpu - HAMi's `LD_PRELOAD` interposer - needs **glibc**; on Alpine/busybox it can't find `libdl.so.2` (exit **127**). Use a glibc CUDA image - Debian or Ubuntu
+- {icon:x cls=accent-secondary} **Runtimes that skip CUDA hang.** MATLAB freezes *before* it ever reaches a CUDA call
+- {icon:check cls=accent-primary} **What does *not* break:** even multi-GPU - P2P, all-reduce, tensor parallel + CUDA graphs on NCCL 2.28 - all stays inside CUDA
 
 ---
 
@@ -812,6 +872,7 @@ HAMi sits in front of every CUDA call. **Go around CUDA, and HAMi cannot see you
 
 ---
 
+@hidden
 ## Applicable Scenarios
 
 @subtitle Online inference, A/B testing, mixed workloads
@@ -950,4 +1011,4 @@ Community edition is free and open-source. Enterprise edition available with add
 # Questions?
 
 @speaker name="Reza Jelveh" role="Solution Architect, Dynamia AI  -  Makers of HAMi" github=github.com/rezajelveh twitter=@rezajelveh
-@speaker name="The Anh Nguyen" role="AI Cloud Ops, Viettel Networks  -  CNCF Kubestronaut" github=github.com/ntheanh201 linkedin=linkedin.com/in/ntheanh201
+@speaker name="The Anh Nguyen" role="Software Engineer, Viettel Networks  -  CNCF Kubestronaut" github=github.com/ntheanh201 linkedin=linkedin.com/in/ntheanh201
