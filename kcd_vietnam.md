@@ -3,6 +3,7 @@ theme: kcd_vietnam
 title: "From Project to Production: HAMi and Viettel Cloud"
 footer: HAMi x Viettel Cloud - KCD Vietnam 2026
 paginate: true
+transition: fade
 style: |
   img[alt="Certified Kubernetes - AI Platform"] { max-height: 56vh; width: auto; display: block; margin: 0 auto 0.4em; }
   img[alt="badge"] { display: inline-block !important; height: 3em; width: auto; margin: 0 0.5em 0 0 !important; vertical-align: middle; }
@@ -59,6 +60,7 @@ Kubernetes treats GPUs as atomic resources, forcing over-provisioning and low ut
 ---
 
 ## What is HAMi
+@transition none
 
 @subtitle Fractional vGPUs, multiple tasks per device
 
