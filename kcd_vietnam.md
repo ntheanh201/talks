@@ -894,14 +894,14 @@ install = a Helm chart. NOT the hard part.
 LAND (SLOW): this is an operations project, not a one-line install
 -->
 
-| What surprised us | What we did |
+| Obstacle | Solution |
 |---|---|
-| **Kyverno** blocks HAMi's device plugin - needs **privileged + hostPath** | Exclude `hami-system` from the **pod-security** policies |
-| GPU Operator **also registers** `nvidia.com/gpu` - clashes with HAMi | Operator device plugin off, CDI off |
-| Fractional, full-GPU, Slurm (Slinky) **all want the same nodes** | Own pool, own scheduler, and a taint |
-| HAMi 2.9 **renamed all metrics** - dashboards empty | Use `hami_*`. We fixed the docs upstream |
+| HAMi's **privileged access** conflicts with **Kyverno** policies | Exclude `hami-system` from the **pod-security** policies |
+| **`nvidia.com/gpu`** is ambiguous - claimed by both the **NVIDIA device plugin** and HAMi | Operator device plugin off, CDI off |
+| **Resource-pool overlap** - fractional, full-GPU, and **Slurm** (Slinky) | Own pool, own scheduler, and a taint |
+| HAMi 2.9 **metrics refactor** - Grafana dashboards mismatch, go **empty** | Use `hami_*`. We fixed the docs upstream |
 
-**Remember this: it is an operations project, not a one-line install.**
+> **It is an operations project, not a one-line install.**
 
 ---
 
