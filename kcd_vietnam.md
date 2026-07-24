@@ -803,9 +803,9 @@ ax.set_ylim(-4, 24.5)
 
 | What surprised us | What we did |
 |---|---|
-| **Kyverno blocked HAMi** - the plugin is privileged | Exclude `hami-system` from the policies |
-| GPU Operator and HAMi **fight over the GPU** | Operator device plugin off, CDI off |
-| Fractional, full-GPU, Slinky **fight over nodes** | Own pool, own scheduler, and a taint |
+| **Kyverno** blocks HAMi's device plugin - needs **privileged + hostPath** | Exclude `hami-system` from the **pod-security** policies |
+| GPU Operator **also registers** `nvidia.com/gpu` - clashes with HAMi | Operator device plugin off, CDI off |
+| Fractional, full-GPU, Slurm (Slinky) **all want the same nodes** | Own pool, own scheduler, and a taint |
 | HAMi 2.9 **renamed all metrics** - dashboards empty | Use `hami_*`. We fixed the docs upstream |
 
 **Remember this: it is an operations project, not a one-line install.**
@@ -866,9 +866,9 @@ ax.text(50, 2.5, "e.g. MATLAB - freezes before it ever reaches CUDA", ha="center
 @subtitle From one pool to a real service
 
 - {icon:users cls=accent-primary} **More teams** inside Viettel, with quota per team
-- {icon:server cls=accent-primary} **More pools** - today one GPU pool, next the rest of the fleet
-- {icon:gauge cls=accent-contrast} **More workload types** sharing the same card
-- {icon:git-compare-arrows cls=accent-contrast} **Move to DRA** - same limits, standard Kubernetes way
+- {icon:server cls=accent-primary} **More pools** - the H200 and mixed-GPU pools today, the rest of the fleet next
+- {icon:gauge cls=accent-contrast} **More workload types** on the same card - agents, bigger LLMs, batch jobs
+- {icon:git-compare-arrows cls=accent-contrast} **Move to DRA** - keep the same isolation, swap the custom API for the standard Kubernetes one
 
 ---
 
