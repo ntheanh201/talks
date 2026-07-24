@@ -476,7 +476,7 @@ GPU memory automatically swapped to host RAM for idle tasks. Typical scenario: m
 
 ## Who We Are
 
-@subtitle Viettel Cloud, and the AI Platform team
+@subtitle Viettel Cloud, the AI Platform, and the GPU-sharing slice we'll cover
 
 ::: grid {cols=2}
 ::: card {tag=cyan}
@@ -495,8 +495,9 @@ Software Engineer, Viettel Networks
 
 Cloud platform of Viettel Group, Vietnam's largest telco.
 
-- **AI Platform**: notebooks, training, inference
-- **AI Notebooks with fractional GPU**
+- **Viettel Cloud AI-Native** - the AI / GPU platform
+- **AI Notebooks with fractional GPU** - dev & training
+- Also **inference serving**
 - **H200** pool (141 GB), plus **L40, L40S, A30, A6000, ...**
 :::
 :::
