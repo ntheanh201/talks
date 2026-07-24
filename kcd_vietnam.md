@@ -966,6 +966,16 @@ ax.text(50, 2.5, "e.g. MATLAB - freezes before it ever reaches CUDA", ha="center
 
 @subtitle From one pool to a real service
 
+<!--
+30s
+more teams, each with its own quota
+more pools: beyond H200 + mixed -> out to the rest of the fleet
+more workloads on one card: agents, bigger LLMs, batch
+-> DRA: keep the same isolation, swap our custom API for the standard K8s way to ask
+WHY HAMi = multi-vendor: today NVIDIA, won't always be; HAMi does Ascend/Cambricon/... - vendor tools can't
+end: Thank you.
+-->
+
 - {icon:users cls=accent-primary} **More teams** inside Viettel, with quota per team
 - {icon:server cls=accent-primary} **More pools** - the H200 and mixed-GPU pools today, the rest of the fleet next
 - {icon:gauge cls=accent-contrast} **More workload types** on the same card - agents, bigger LLMs, batch jobs
