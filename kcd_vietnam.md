@@ -888,7 +888,7 @@ cut-for-time: drop LLM/training detail, NEVER the gpumem/gpucores table
 <!--
 install = a Helm chart. NOT the hard part.
 1) Kyverno blocked it: plugin needs host driver/devices + kubelet socket -> privileged+hostPath -> policy rejects -> allow hami-system ns
-2) GPU Operator also claims nvidia.com/gpu -> clash. two switches: OFF operator device-plugin; CDI OFF (CDI wires devices itself; HAMi needs the plain legacy runtime)
+2) nvidia.com/gpu ambiguous - both the NVIDIA device plugin AND HAMi claim it. two switches: OFF operator device-plugin; CDI OFF (CDI wires devices itself; HAMi needs the plain legacy runtime)
 3) fractional/full/Slinky fought for nodes -> own pool + own scheduler + a taint
 4) 2.9 renamed every metric -> dashboards empty -> new names + doc fix upstream
 LAND (SLOW): this is an operations project, not a one-line install
