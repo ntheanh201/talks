@@ -478,6 +478,14 @@ GPU memory automatically swapped to host RAM for idle tasks. Typical scenario: m
 
 @subtitle Viettel Cloud, the AI Platform, and the GPU-sharing slice we'll cover
 
+<!--
+Lead, AI/GPU Platform = 'Viettel Cloud AI-Native'
+Viettel Cloud = Viettel Group cloud, largest telco in Vietnam
+we give our engineers AI Notebooks with fractional GPU
+GPUs are MIXED: 1 pool H200 + pools L40/L40S/A30/A6000 - remember, it matters later
+DON'T read the cert list. one sentence, then move.
+-->
+
 ::: grid {cols=2}
 ::: card {tag=cyan}
 ### The Anh Nguyen
@@ -508,6 +516,13 @@ Cloud platform of Viettel Group, Vietnam's largest telco.
 
 @subtitle 31 platforms in the world have it. We are one.
 
+<!--
+CNCF Certified K8s AI Platform - 31 in the world
+AWS, Google, Azure, Oracle, Red Hat... and Viettel - we are #20
+first & only in Vietnam
+POINT at the Viettel logo, then GO. don't linger.
+-->
+
 ![Certified Kubernetes - AI Platform](assets/kcd_vietnam/certified-k8s-ai-platform.png)
 
 ![badge](assets/kcd_vietnam/ai-conformance-badge.png) Our **AI Platform** - **first & only in Vietnam**, #**20** worldwide.
@@ -517,6 +532,16 @@ Cloud platform of Viettel Group, Vietnam's largest telco.
 ## What We Run Today
 
 @subtitle HAMi in our clusters
+
+<!--
+HAMi 2.9 on BOTH clusters (H200 + mixed) - engineers use it daily
+memory is real: pod sees 2 GB, not 141
+next to Slinky/inference/KEDA - 2 schedulers, no conflict
+per-pod GPU metrics (DCGM can't - only per physical GPU)
+users write YAML: gpumem = HARD, gpucores = best-effort
+researchers just pick the size in AI Notebooks UI (Kubeflow)
+numbers in this talk: mostly H200, a few L40
+-->
 
 - {icon:server cls=accent-primary} **HAMi v2.9** on **both clusters**: the H200 pool, and the mixed-GPU one
 - {icon:users cls=accent-primary} Our own engineers use it every day
@@ -543,6 +568,17 @@ Numbers in this talk: mostly the **H200 pool**, a few from **L40**.
 ## The Problem We Measured
 
 @subtitle Asking for a GPU is not the same as using it
+
+<!--
+2 jobs, each held a WHOLE H200 (141 GB)
+1) Chronos forecast (infra load), ~200M params -> 1 GB / 141, compute 16-18%
+2) YOLO11 training, cabinet damage, 17k images -> 39 GB
+why only 39? batch = ACCURACY not memory; busy ~90%; data pipeline blocks first
+=> 39 GB is the RIGHT size -> ~100 GB spare is real
+[pause] many GPUs have NO MIG (L40/L40S/A6000) - slicing not even a choice
+K8s gives one option: nvidia.com/gpu:1 - whole card or nothing
+don't rush the '1 GB out of 141'
+-->
 
 Two real jobs. Each one held **a whole H200, 141 GB**:
 
@@ -594,6 +630,14 @@ ax.set_xticks([])
 ## The Result: 3.4x More Work Per GPU
 
 @subtitle Fix the SLA, scale replicas, fill the empty GPU
+
+<!--
+Native 20.7 @18% | slice 19.6 (noise) | +KEDA 10 replicas -> 71.1 @ same 160ms
+=> ~3.5 cards natively; HAMi does it on 1 -> 70% fewer cards, ~half power
+LAND: HAMi FILLS the empty GPU - it does NOT make one pod faster
+team: unfair baseline -> 3 tests: no-SLA 29.6 (P95 -> 6s, still 10%), batch->512 (7-10%), dtypes none
+=> one instance can't fill the card -> the 3.4x is real
+-->
 
 ```seaborn
 import matplotlib.pyplot as plt
@@ -647,6 +691,16 @@ One pod uses only **18% of the card**. Pack **10 replicas** on it and the GPU hi
 
 @subtitle One slice guaranteed, on purpose - and what it costs
 
+<!--
+free space fits anything: small LLMs, agents, CV, embeddings
+the PRICE: cap notebook to 70% cores -> 1h00 -> 1h20 = +20 min
+why the reservation is solid:
+  - memory FENCED: sees own slice, can't OOM neighbours
+  - cores CAPPED with `force`: 70% genuinely reserved, not 'if idle'
+  - we PAY 20 min on purpose (small model cheap; big model costs more)
+LAND: 20 min turns 'maybe there is space' into 'this space is yours'
+-->
+
 **Workload:** an AI Notebook training YOLO11 - ~17k images, batch 64 → **39 GB** used. Batch is sized for **accuracy**, not to fill the card - so the spare **~100 GB is genuinely free**, not just idle. We fence **~30%** and cap the notebook to **70% of the cores**.
 
 ```seaborn
@@ -684,6 +738,15 @@ ax.set_ylim(-20, 112)
 ## The Rest Follows The Load
 
 @subtitle One notebook fixed all day - inference flexes by the hour
+
+<!--
+green = the notebook, NEVER changes (capped, guaranteed, same machine all day)
+everything right of it FOLLOWS the load:
+  morning: everyone opens forecasts -> time-series x6
+  office hrs: -> x1, LLM inference x5 (<20B, e.g. Qwen2.5-14B)
+  night: inference quiet -> more notebooks + overnight training
+LAND: they peak at different hours -> take turns on one card -> never idles
+-->
 
 ```seaborn
 import matplotlib.pyplot as plt
@@ -729,6 +792,14 @@ ax.set_ylim(-0.6, 3.2)
 
 @subtitle Does sharing make training jittery? We measured it
 
+<!--
+BACKUP - show only if asked about stability
+CV = coefficient of variation of epoch time (lower = steadier)
+alone: ~1% | shared + NO cap: 19% (jittery) | cap with `force`: 9% (steady)
+=> the cap roughly HALVES the jitter, on the same shared card
+honest: cap protects STABILITY, not throughput. hard isolation = MIG.
+-->
+
 The card is now *truly* shared - the notebook trains while **bursty inference** flexes beside it. Does that shake the training? We measured epoch-time **CV** - standard deviation ÷ mean, lower is steadier.
 
 ```seaborn
@@ -769,6 +840,19 @@ ax.set_ylim(-4, 24.5)
 
 @subtitle HAMi fills the *empty* part of a card - a full one has nothing to give
 
+<!--
+helps: job SMALL or BURSTY, can't fill card alone (bursty = comes in waves) -> our 10 pods, 3.4x
+does NOT help when the job already fills the GPU - measured twice:
+  - LLM SGLang: 1 big 11.6k tok/s > 4 small 7.3k (continuous batching)
+  - training LSTM x1/x2/x4: 2779 -> 2278 -> 2148 = 0.77x, packing LOSES
+=> full card: packing = isolation + fair share, NOT throughput
+[pause] gpumem = REAL limit (neighbour safe) | gpucores = only a HINT
+  10% vs 90% pods -> same ~11 ops/s each (fair share under contention)
+  3rd line: with `force` the cap is real (the 70%, costs 20 min)
+LAND: promise memory. do not promise compute.
+cut-for-time: drop LLM/training detail, NEVER the gpumem/gpucores table
+-->
+
 ::: grid {cols=2}
 ::: card {tag=green}
 ### {icon:check cls=accent-primary} It helps when the card is empty
@@ -801,6 +885,15 @@ ax.set_ylim(-4, 24.5)
 
 @subtitle The hard part is not installing HAMi
 
+<!--
+install = a Helm chart. NOT the hard part.
+1) Kyverno blocked it: plugin needs host driver/devices + kubelet socket -> privileged+hostPath -> policy rejects -> allow hami-system ns
+2) GPU Operator also claims nvidia.com/gpu -> clash. two switches: OFF operator device-plugin; CDI OFF (CDI wires devices itself; HAMi needs the plain legacy runtime)
+3) fractional/full/Slinky fought for nodes -> own pool + own scheduler + a taint
+4) 2.9 renamed every metric -> dashboards empty -> new names + doc fix upstream
+LAND (SLOW): this is an operations project, not a one-line install
+-->
+
 | What surprised us | What we did |
 |---|---|
 | **Kyverno** blocks HAMi's device plugin - needs **privileged + hostPath** | Exclude `hami-system` from the **pod-security** policies |
@@ -815,6 +908,14 @@ ax.set_ylim(-4, 24.5)
 ## Where The Magic Breaks
 
 @subtitle Useful to know before you debug for two days
+
+<!--
+HAMi sits in front of every CUDA call (libvgpu, LD_PRELOAD). code that goes around CUDA = HAMi is blind.
+GOOD news first: what stays inside CUDA does NOT break - even multi-GPU (P2P/all-reduce/TP+CUDA graphs, NCCL 2.28, incl old NCCL on the legacy path)
+2 failures, both go around CUDA:
+  - musl image (Alpine/busybox): libvgpu needs glibc -> 'libdl.so.2 not found', exit 127 before your code runs. fix: glibc base (Debian/Ubuntu CUDA)
+  - MATLAB: its Runtime deadlocks at startup, freezes BEFORE it ever reaches a CUDA call
+-->
 
 HAMi sits in front of every CUDA call. **Go around CUDA, and HAMi cannot see you.**
 
